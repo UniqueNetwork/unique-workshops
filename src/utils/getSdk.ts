@@ -5,7 +5,7 @@ export const getSdk = async () => {
   // 1. Put your mnemonic seed phrase
   // 2. Top-up your balance with OPL tokens: @unique2faucet_opal_bot
   const account = Sr25519Account.fromUri(
-    "tenant wreck walnut cycle duck dove vintage fault dress mercy shrug evolve"
+    "TODO set your own seed phrase"
   );
 
   const chain = UniqueChain({
