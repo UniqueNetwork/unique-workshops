@@ -1,23 +1,21 @@
 {
-  "name": "mass-nfts",
+  "name": "workshop-nft-data",
   "version": "1.0.0",
-  "description": "Showcase the process of mass minting",
+  "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": ""
+    "create": "npx tsx ./src/main.ts"
   },
   "keywords": [],
   "author": "",
-  "license": "Apache 2.0",
+  "license": "MIT",
   "dependencies": {
-    "@unique-nft/sdk": "^0.7.5",
+    "@unique-nft/sdk": "2.0.2",
     "@unique-nft/sr25519": "^0.0.2",
-    "adm-zip": "^0.5.10",
-    "bignumber.js": "^9.1.1",
-    "convert-array-to-csv": "^2.0.0",
-    "csv-reader": "^1.0.12",
-    "i": "^0.3.7",
-    "jimp": "^0.22.10",
-    "threads": "^1.7.0"
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.1"
   }
 }

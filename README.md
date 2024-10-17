@@ -1,192 +1,172 @@
-## 👩‍🎓 Who is this guide for
+# Unique Metadata v2
 
-This tutorial is for those who already have token images and want to create a large collection of hundreds or thousands of tokens. You will learn how to create a collection and mint a large number of tokens in less than 10 minutes.
+This workshop demonstrates the capabilities of Unique Metadata v2.
 
-This guide is perfect for beginners who don't have extensive programming knowledge. However, having some familiarity with using the console will be helpful.
+### Before we start
 
-> [!TIP]
-> If you want to create a generative NFT collection, make use of [this guide](./generate.md).
+- Create a Substrate account
+- Get `OPL` (testnet) tokens: https://t.me/unique2faucet_opal_bot
+- Create `.env` from `.env-example` and set your mnemonic phrase
+- Run `npm install`
 
-By completing of this tutorial, you will have a clear understanding of how to use scripts to mint vast collections, illustrated through the example of the [Space Animals collection](https://uniquescan.io/opal/collections/1883).
+---
 
-<image src="./docs/intro.png"></image>
+## Create collection and NFTs
 
-## ⚙️ Step-1: Setup environment
-
-To get started, we'll need node.js, git, and Visual Studio Code installed on your computer. If you haven't worked with git, node, and npm before, we recommend reading our [brief guide](./setup.md) to configure your environment correctly.
-
-### 1.1 Download the project
-
-You may do it in two ways.
-
-1. Using terminal. Open your terminal, `cd` to desired directory, and execute the following command:
 ```sh
-git clone git@github.com:UniqueNetwork/mass-nfts-doc.git
+npm run create
 ```
 
-2. Manually. Go to the [Github repository](https://github.com/UniqueNetwork/mass-nfts-doc) and download the project by clicking `Code - Download ZIP`. Unzip it after downloading.
+Let's give an overview of the provided code examples:
 
-<image src="./docs/download.png"></image>
+### Initializing the SDK
 
-After downloading the project, open it in Visual Studio Code. Click on `"File"` and select `"Open Folder"`. Then, choose the folder where the project was downloaded.
+[`src/utils/getSdk.ts`](./src/utils/getSdk.ts)
 
-### 1.2 Install dependencies
+```ts
+import { UniqueChain } from "@unique-nft/sdk";
+import { Sr25519Account } from "@unique-nft/sr25519";
 
-In Visual Studio Code, access the built-in terminal by clicking on `"Terminal"` and then selecting `"New Terminal"`. Execute the following command:
+export const getSdk = async () => {
+  // 1. Put your mnemonic seed phrase
+  // 2. Top-up your balance with OPL tokens: @unique2faucet_opal_bot
+  const account = Sr25519Account.fromUri(
+    "tenant wreck walnut cycle duck dove vintage fault dress mercy shrug evolve"
+  );
 
+  const chain = UniqueChain({
+    // public endpoints list: https://docs.unique.network/reference/sdk-endpoints.html
+    baseUrl: "https://rest.unique.network/v2/opal",
+    account,
+  });
+
+  return {chain, account};
+}
 ```
-npm install
+
+This script utilizes the `@unique-nft/sdk` and `@unique-nft/sr25519` packages.
+
+Using your seed phrase, it initializes an account with `Sr25519Account.fromUri`. Set your seed phrase, and remember to top up your balance. For this example, we use the Opal testnet, and you can receive `OPL` tokens for free using the [Telegram faucet bot](https://t.me/unique2faucet_opal_bot).
+
+```ts
+const account = Sr25519Account.fromUri(
+  "todo set your own secret seed phrase here."
+);
 ```
 
-<image src="./docs/terminal.png"></image>
+Then, it initializes the SDK with the Opal network's public endpoint and the initialized account. By default, all subsequent transactions will be executed on behalf of this account.
 
-Lastly, create a file named `config.js` in the root directory of your project and copy the contents from the `config.example.js` file into it. 
+```ts
+const chain = UniqueChain({
+  // Public endpoints list: https://docs.unique.network/reference/sdk-endpoints.html
+  baseUrl: "https://rest.unique.network/v2/opal",
+  account,
+});
+```
 
-Congratulations! You're all set now. After following the previous steps, your project should resemble the screenshot below.
+### Creating a collection
 
-<image src="./docs/setup-finish.png" width=400></image>
+[`src/collection.ts`](./src/collection.ts)
 
-## 🖼 Step-2: Prepare your images
+This script uses the SDK initialization and executes a collection creation transaction on behalf of the initialized account.
 
-Place your images in the `data` folder. The image names should consist of a `symbol` and a sequential number that determines the token's position in the collection. For this tutorial, the collection symbol is `SA`. Therefore, `sa1.png` will be the first token in the collection, `sa2.png` will be the second token, and so on.
+```ts
+const { result } = await chain.collection.create({
+  // Basic collection metadata
+  name: "Metadata 2",
+  description: "Unique Metadata 2.0",
+  symbol: "MTD",
+  info: {
+  cover_image: {url: "https://orange-impressed-bonobo-853.mypinata.cloud/ipfs/Qmcg9JLXUfBeHesdcu8ANd5kR7r1V7HeBc4EaKNTQv3YBa"}
+  }
+});
+```
 
-Additionally, place an image named `cover.png` in the data folder, which will serve as the cover image for the collection.
+This script sets the basic collection metadata. For more about collection configuration, check the [official documentation](https://docs.unique.network/build/sdk/v2/collections.html).
 
-We have already prepared ten images stored in the `data` folder. Feel free to use them as they are or replace them with your images.
+The `result` will contain all the information about the created collection. The script returns `collectionId` – the unique identifier of the created collection.
 
-<image src="./docs/images.png"></image>
-
-> [!IMPORTANT]
-> ✏️ In the `config.js` file, specify the prefix for your collection by setting the value of the `symbol` property (max 4 symbols).
-
-## 📇 Step-3: Prepare metadata
-
-Metadata is basic information that describes NFT or collection, such as its name, description, token prefix, and other relevant details.
-
-> [!IMPORTANT]
-> ✏️ In the `config.js` file, fill in the fields `collectionName` (max 64 symbols), `collectionDescription` (max 256 symbols).
->
-> If you want to make nesting available for your collection, set the `nesting` property. [Read more about nesting](https://docs.unique.network/build/sdk/examples-nesting.html).
-
-## 👨‍🎨 Step-4: Describe the properties of NFTs
-
-We will encode NFT properties in CSV format. The first value in the header should be id, representing the sequential number of each token. Following that, list all the existing properties of the collection that were set in the previous step.
-
-**Example**
-```csv
-id,creature,description
-1,Bear,"A bear perched in the sky, amid a sea of stars"
-2,Elephant,A skyward elephant 
-3,Giraffe,A blue giraffe that fascinates the eye.
+```ts
 ...
+return result.collectionId;
 ```
 
-The simplest way to create such a structure is to use [Google Sheets](https://docs.google.com/spreadsheets/d/1712bCiuCKYJOXsN9rIGW_QKJbMt312mw-2WQlSpXMzE/edit#gid=1148781766).
+### Creating NFTs
 
+[`src/nft.ts`](./src/nft.ts)
 
-Complete the table by listing all the properties of your collection in the header. On each subsequent row, list the properties that will be added to the token with the corresponding id (max 32768 symbols). Export the filled values by clicking on `File - Download - Comma Separated Values (.csv)`
+This script creates NFTs using the collectionId of the previously created collection.
 
+```ts
+const { result } = await chain.token.mintNFTs({
+  collectionId, // NFTs are part of the collection
+  ...
+```
 
-<image src="./docs/sheets.png"></image>
+We also need to provide metadata for the NFTs. The basic metadata you likely want to set are the token image and attributes.
 
-> <font size=1> In the image above, the data is filled in to create 10 tokens with two properties, `creature` and `description`. </font>
+```ts
+const { result } = await chain.token.mintNFTs({
+  collectionId,
+  tokens: [
+    {
+      data: {
+        image:
+          "https://orange-impressed-bonobo-853.mypinata.cloud/ipfs/QmNNk6zuBgVmR5pusP3M7X6tubXXHPUkkzsfAfSKdWkptK",
+        attributes: [
+          { trait_type: "animal", value: "horse" },
+          { trait_type: "size", value: "big" },
+        ],
+        ...
+      },
+    },
+    {
+      // The second NFT's metadata
+      ...
+    }
+```
 
-> [!IMPORTANT]
-> ✏️ Rename the exported file to `nfts.csv` and save it in the `data` folder.
+Here is how your NFT will look on [Unique Scan](https://uniquescan.io/opal/tokens/4091/1)
 
-We have already included a file named `nfts.csv` with data for 10 NFTs. You can use this file as it is or add more tokens and properties.
+<image src="./images/basic-nft.png"></image>
 
-<image src="./docs/csv.png"></image>
+You may also want to set more advanced metadata, connect audio or a PDF file, or specify customization parameters. In this example, we associate animal sounds with a PDF file.
 
-## ⛓ Step-5: Prepare Substrate Account
+```ts
+media: {
+  whitepaper: {
+    type: "pdf",
+    url: "https://ethereum.org/content/whitepaper/whitepaper-pdf/Ethereum_Whitepaper_-_Buterin_2014.pdf",
+  },
+  sound: {
+    type: "audio",
+    url: "https://orange-impressed-bonobo-853.mypinata.cloud/ipfs/QmYCk6D2jApXeY26ifgzkVXrfLPP4KpJe943Xx2urLBL91",
+  },
+},
+```
 
-### 5.1 Generate address and seed phrase
+You can read more about Unique Metadata and available parameters in the [documentation](https://docs.unique.network/reference/schemas)
 
-You will need an address with a balance to create the collection and tokens. If you don't have an account yet, you may create it with [Polkadot{.js} extension for Chrome](https://polkadot.js.org/extension/).
+## Frontend
 
-- Open the Polkadot{.js} extension in your browser.
-- Look for the "+" icon and click on it.
-- A menu will appear. From the options presented, select "Create new account".
-- A 12-words mnemonic phrase will be generated. Make sure to save it securely.
+You can use the [react template](https://github.com/UniqueNetwork/unique-react-template) for a rapid development experience. This template provides account management and basic UI components you may utilize in your application.
 
-<image src="./docs/extension.png"></image>
-
-> [!IMPORTANT]
-> ✏️ In the `config.js` file, fill in the `ownerSeed` field.
-
-> [!CAUTION]
-> ❗️ Do not commit your secrets, such as `ownerSeed`, to version control! We have added `config.js` to the `.gitignore` file for this purpose.
-
-### 5.2 Get some tokens
-
-For this guide, we are using Opal Network, and you can obtain OPL tokens for free by using [Telegram faucet bot](https://t.me/unique2faucet_opal_bot). You will have to provide your address (not a mnemonic phrase!). Click on the circle icon next to your account in the Polkadot extension to copy it.
-
-> [!TIP]
-> If you are ready to mint tokens on the mainnet (Quartz or Unique), make sure to change the endpoint variable in the config.js file. Set it to `https://rest.unique.network/quartz/v1` for Quartz or `https://rest.unique.network/unique/v1` for Unique.
->
-> - Quartz Network tokens (QTZ) are available on [MEXC](https://www.mexc.com/ru-RU/exchange/QTZ_USDT?_from=search)
-> 
-> - For Unique Network tokens (UNQ) you can visit [Huobi](https://www.huobi.com/en-us/trade/unq_usdt?type=spot)
-
-
-## 💎 Step-6: Create Collection and NFTs
-
-### 6.1 Upload images to IPFS
-
-In simple terms, the Inter-Planetary File System (IPFS) is a distributed file storage protocol that enables a network of computers to store any data in a reliable and unchangeable manner.
-
-Open the VS Code terminal and execute the following command:
+Clone the repository and install packages:
 
 ```sh
-node 1-upload-images.js
+git clone git@github.com:UniqueNetwork/unique-react-template.git
+cd ./unique-react-template
+yarn
 ```
 
-After a short time, you will see the result of executing the command:
-
-<image src="./docs/upload.png"></image>
-
-This script will pack all the images into a zip archive and save it as data/archive.zip. Then it will upload it to IPFS. Ensure that all your files are successfully uploaded by visiting the link provided in the console output.
-
-> [!IMPORTANT]
-> ✏️ In the `config.js` file, fill in the `fileUrl` set provided link. 
-
-### 6.2 Create a collection
-
-We have set the collection metadata in the previous steps. Double-check that the name, description, symbol, and attributes fields are filled in `config.js`. Afterward, execute the script.
+Run the project; it will automatically open the page with the template.
 
 ```sh
-node 2-create-collection.js
+yarn start
 ```
 
-After a short time, you will see the result of executing the command:
+Connect the account used for minting and navigate to the account page to see your NFTs. Alternatively, you may manually set the URL of the created NFT. For collection ID `4091` and token ID `2`, navigate to the `http://localhost:3002/token/4091/2` page.
 
-```
-🚀 Creating collection... done!
-❗️❗️❗️ add to "config.js" collectionId: 1877
-```
+<image src="./images/template.png"></image>
 
-> [!IMPORTANT]
-> ✏️ In the `config.js` file, fill in the `collectionId` set provided value.
-
-Your collection has been created, and you can check it on your [wallet](https://wallet.unique.network/) or on [uniquescan.io](https://uniquescan.io/). Your collection doesn't have any NFTs yet, so let's create some.
-
-
-### 6.3 Create NFTs
-
-We have set the token metadata in the previous steps in the nfts.csv file. Check again if it exists. After that, execute the following script.
-
-```sh
-node 3-create-nfts.js
-```
-
-After a short time, you will see the result of executing the command:
-
-```
-🚚 successfully created 1 part of NFT's
-🚀 Creating NFTs... done!
-Token Ids: 1, 2, 3, 4, 5
-
-🔗 You can find your collection and tokens here: https://uniquescan.io/opal/collections/1877
-```
-
-Your collection and tokens have been successfully created! You can find it in your [wallet](https://wallet.unique.network/). Or you can connect to [Unique Market](https://unqnft.io/) and list your NFTs for sale.
+Learn how the template works in the [repository documentation](https://github.com/UniqueNetwork/unique-react-template).
