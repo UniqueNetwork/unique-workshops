@@ -147,6 +147,24 @@ media: {
 
 You can read more about Unique Metadata and available parameters in the [documentation](https://docs.unique.network/reference/schemas)
 
+### Mutating NFT attributes
+
+[`src/mutate.ts`](./src/mutate.ts)
+
+By default, the collection admin has permission to mutate token attributes. To mutate the attributes, you can use the `token.updateNft` method.
+
+```ts
+await chain.token.updateNft({
+  collectionId, tokenId, data: {image: `https://picsum.photos/seed/${randomPublicKey}/300`}
+})
+```
+
+Set some random image to your NFT:
+
+```sh
+npm run mutate -- <collectionId> <tokenId>
+```
+
 ## Frontend
 
 You can use the [react template](https://github.com/UniqueNetwork/unique-react-template) for a rapid development experience. This template provides account management and basic UI components you may utilize in your application.

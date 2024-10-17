@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "create": "npx tsx ./src/main.ts"
+    "create": "npx tsx ./src/main.ts",
+    "mutate": "npx tsx ./src/mutate.ts"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +17,7 @@
     "dotenv": "^16.4.5"
   },
   "devDependencies": {
+    "@types/node": "^22.7.6",
     "tsx": "^4.19.1"
   }
 }

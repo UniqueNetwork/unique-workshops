@@ -10,8 +10,19 @@ export const createCollection = async () => {
     symbol: "MTD",
     info: {
       cover_image: {url: "https://orange-impressed-bonobo-853.mypinata.cloud/ipfs/Qmcg9JLXUfBeHesdcu8ANd5kR7r1V7HeBc4EaKNTQv3YBa"}
-    }
-    // You can add more options https://docs.unique.network/build/sdk/v2/collections.html
+    },
+    // NOTE: You can restrict NFT attributes mutation:
+    // tokenPropertyPermissions: [
+    //   {
+    //     key: "tokenData",
+    //     permission: {
+    //       mutable: false,
+    //       collectionAdmin: false,
+    //       tokenOwner: false,
+    //     }
+    //   }
+    // ]
+    // NOTE: Check more options https://docs.unique.network/build/sdk/v2/collections.html
     // limits: {}
     // permissions: {}
     // ...
